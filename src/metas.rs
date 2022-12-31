@@ -17,11 +17,11 @@ pub(crate) struct Meta {
 }
 
 impl Meta {
-    pub fn has_id(&self, speaker_id: u32) -> bool {
+    fn has_id(&self, speaker_id: u32) -> bool {
         self.styles.iter().any(|style| style.id == speaker_id)
     }
 
-    pub fn first_style_id(&self) -> u32 {
+    fn first_style_id(&self) -> u32 {
         self.styles[0].id
     }
 }
