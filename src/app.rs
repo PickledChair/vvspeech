@@ -15,7 +15,7 @@ struct Args {
     #[command(subcommand)]
     command: Commands,
     /// Set the TTS engine URL (default = "http://127.0.0.1:50021".
-    /// shorthands: ["voicevox", "coeiroink", "sharevox"])
+    /// shorthands: ["voicevox", "coeiroink", "sharevox", "lmroid", "itvoice"])
     #[arg(short, long, value_name = "URL")]
     engine_url: Option<String>,
 }
@@ -148,6 +148,8 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             "voicevox" => "http://127.0.0.1:50021".to_string(),
             "coeiroink" => "http://127.0.0.1:50031".to_string(),
             "sharevox" => "http://127.0.0.1:50025".to_string(),
+            "lmroid" => "http://127.0.0.1:50073".to_string(),
+            "itvoice" => "http://127.0.0.1:49540".to_string(),
             _ => base_url,
         }
     } else {
