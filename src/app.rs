@@ -143,15 +143,15 @@ fn show_info(
 
 pub(crate) async fn app_run() -> anyhow::Result<()> {
     let args = Args::parse();
-    let base_url = args
-        .engine_url
-        .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
-
-    let base_url = match base_url.as_str() {
-        "voicevox" => "http://127.0.0.1:50021".to_string(),
-        "coeiroink" => "http://127.0.0.1:50031".to_string(),
-        "sharevox" => "http://127.0.0.1:50025".to_string(),
-        _ => base_url,
+    let base_url = if let Some(base_url) = args.engine_url {
+        match base_url.as_str() {
+            "voicevox" => "http://127.0.0.1:50021".to_string(),
+            "coeiroink" => "http://127.0.0.1:50031".to_string(),
+            "sharevox" => "http://127.0.0.1:50025".to_string(),
+            _ => base_url,
+        }
+    } else {
+        DEFAULT_BASE_URL.to_string()
     };
 
     let speakers = get_speakers(&base_url)
