@@ -1,7 +1,7 @@
-use super::audio_query::AudioQueryModel;
-use super::metas::Meta;
-
 use serde::Serialize;
+
+use crate::audio_query::AudioQueryModel;
+use crate::metas::Meta;
 
 pub(crate) async fn get_speakers(base_url: &str) -> surf::Result<Vec<Meta>> {
     surf::get(base_url.to_string() + "/speakers")

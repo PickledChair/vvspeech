@@ -3,9 +3,9 @@ use clap::{Parser, Subcommand};
 use std::fs::File;
 use std::io::{BufReader, Cursor, Write};
 
-use super::communications::*;
-use super::error::*;
-use super::metas::*;
+use crate::communications::*;
+use crate::error::*;
+use crate::metas::*;
 
 const DEFAULT_BASE_URL: &str = "http://127.0.0.1:50021";
 
