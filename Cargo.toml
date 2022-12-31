@@ -3,6 +3,7 @@ name = "vvspeech"
 version = "0.1.0"
 edition = "2021"
 description = "A tool to communicate with the VOICEVOX (or other) engine to retrieve audio queries and audio files for playback and save"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.68"
