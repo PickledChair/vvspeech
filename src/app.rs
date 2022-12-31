@@ -144,7 +144,7 @@ fn show_info(
 pub(crate) async fn app_run() -> anyhow::Result<()> {
     let args = Args::parse();
     let base_url = if let Some(base_url) = args.engine_url {
-        match base_url.as_str() {
+        match base_url.to_lowercase().as_str() {
             "voicevox" => "http://127.0.0.1:50021".to_string(),
             "coeiroink" => "http://127.0.0.1:50031".to_string(),
             "sharevox" => "http://127.0.0.1:50025".to_string(),
