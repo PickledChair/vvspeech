@@ -34,7 +34,7 @@ fn get_first_speaker_id(metas: &[Meta], speaker_name: &str) -> Result<u32> {
     Ok(metas
         .iter()
         .find(|meta| meta.name == speaker_name)
-        .ok_or(VVSpeechError::InvalidSpeakerName(speaker_name.to_string()))?
+        .ok_or_else(|| VVSpeechError::InvalidSpeakerName(speaker_name.to_string()))?
         .first_style_id())
 }
 

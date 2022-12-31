@@ -114,11 +114,12 @@ fn show_info(
     json: bool,
     pretty_json: bool,
 ) -> anyhow::Result<()> {
+    #[allow(clippy::collapsible_else_if)]
     if let Some(name) = name {
         let meta = metas
             .iter()
             .find(|meta| &meta.name == name)
-            .ok_or(VVSpeechError::InvalidSpeakerName(name.clone()))?;
+            .ok_or_else(|| VVSpeechError::InvalidSpeakerName(name.clone()))?;
         if json && !pretty_json {
             println!("{}", serde_json::to_string(meta)?);
         } else if pretty_json {
