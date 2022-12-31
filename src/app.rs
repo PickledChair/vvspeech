@@ -146,16 +146,12 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
     let base_url = args
         .engine_url
         .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
-    let base_url = if ["voicevox", "coeiroink", "sharevox"].contains(&base_url.as_str()) {
-        "http://127.0.0.1:".to_string()
-            + match base_url.as_str() {
-                "voicevox" => "50021",
-                "coeiroink" => "50031",
-                "sharevox" => "50025",
-                _ => unreachable!(),
-            }
-    } else {
-        base_url
+
+    let base_url = match base_url.as_str() {
+        "voicevox" => "http://127.0.0.1:50021".to_string(),
+        "coeiroink" => "http://127.0.0.1:50031".to_string(),
+        "sharevox" => "http://127.0.0.1:50025".to_string(),
+        _ => base_url,
     };
 
     let speakers = get_speakers(&base_url)
