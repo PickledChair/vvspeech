@@ -37,5 +37,5 @@ pub struct AudioQueryModel {
     output_sampling_rate: u32,
     #[serde(rename = "outputStereo")]
     output_stereo: bool,
-    kana: String,
+    pub kana: String,
 }

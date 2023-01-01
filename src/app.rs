@@ -34,6 +34,11 @@ enum Commands {
         #[arg(short, long)]
         pretty_json: bool,
     },
+    /// Convert the given text to AquesTalk-like notation
+    Kana {
+        /// input text
+        text: String,
+    },
     /// Speak the given text
     Play {
         /// input text
@@ -141,6 +146,14 @@ fn show_info(
     Ok(())
 }
 
+async fn get_kana(text: &str, base_url: &str) -> Result<String> {
+    let audio_query = get_default_audio_query(0, text, base_url)
+        .await
+        .map_err(|_| VVSpeechError::GetAudioQueryFailed)?;
+
+    Ok(audio_query.kana)
+}
+
 pub(crate) async fn app_run() -> anyhow::Result<()> {
     let args = Args::parse();
     let base_url = if let Some(base_url) = args.engine_url {
@@ -167,6 +180,9 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             pretty_json,
         } => {
             show_info(&speakers, name, *json, *pretty_json)?;
+        }
+        Commands::Kana { text } => {
+            println!("{}", get_kana(text, &base_url).await?);
         }
         Commands::Play {
             text,
