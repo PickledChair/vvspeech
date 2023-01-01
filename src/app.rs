@@ -41,7 +41,7 @@ enum Commands {
     },
     /// Speak the given text
     Play {
-        /// input text
+        /// input text (if '--kana' option is specified, AquesTalk-like notation required)
         text: String,
         /// speaker ID (default = 0)
         #[arg(short, long, value_name = "SPEAKER ID")]
@@ -49,10 +49,13 @@ enum Commands {
         /// speaker name
         #[arg(short, long, value_name = "SPEAKER NAME")]
         name: Option<String>,
+        /// AquesTalk-like notation flag
+        #[arg(short, long)]
+        kana: bool,
     },
     /// Generate an audio file from the given text and save it
     Save {
-        /// input text
+        /// input text (if '--kana' option is specified, AquesTalk-like notation required)
         text: String,
         /// speaker ID (default = 0)
         #[arg(short, long, value_name = "SPEAKER ID")]
@@ -63,6 +66,9 @@ enum Commands {
         /// output file name
         #[arg(short, long, value_name = "OUTPUT FILE")]
         output: String,
+        /// AquesTalk-like notation flag
+        #[arg(short, long)]
+        kana: bool,
     },
 }
 
@@ -71,12 +77,19 @@ async fn get_audio_from_engine(
     speaker_id: &Option<u32>,
     speaker_name: &Option<String>,
     text: &str,
+    is_kana: bool,
     base_url: &str,
 ) -> Result<Vec<u8>> {
     let speaker_id = get_appropriate_id(metas, speaker_id, speaker_name)?;
-    let audio_query = get_default_audio_query(speaker_id, text, base_url)
-        .await
-        .map_err(|_| VVSpeechError::GetAudioQueryFailed)?;
+    let mut audio_query =
+        get_default_audio_query(speaker_id, if is_kana { "" } else { text }, base_url)
+            .await
+            .map_err(|_| VVSpeechError::GetAudioQueryFailed)?;
+    if is_kana {
+        audio_query.accent_phrases = get_accent_phrases(speaker_id, text, is_kana, base_url)
+            .await
+            .map_err(|_| VVSpeechError::GetAccentPhrasesFailed)?;
+    }
 
     get_audio(speaker_id, &audio_query, base_url)
         .await
@@ -188,9 +201,11 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             text,
             id: speaker_id,
             name: speaker_name,
+            kana,
         } => {
             let audio =
-                get_audio_from_engine(&speakers, speaker_id, speaker_name, text, &base_url).await?;
+                get_audio_from_engine(&speakers, speaker_id, speaker_name, text, *kana, &base_url)
+                    .await?;
             play_audio(audio)?;
         }
         Commands::Save {
@@ -198,9 +213,11 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             id: speaker_id,
             name: speaker_name,
             output,
+            kana,
         } => {
             let audio =
-                get_audio_from_engine(&speakers, speaker_id, speaker_name, text, &base_url).await?;
+                get_audio_from_engine(&speakers, speaker_id, speaker_name, text, *kana, &base_url)
+                    .await?;
             let mut file = File::create(output)?;
             file.write_all(&audio)?;
         }

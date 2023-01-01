@@ -16,6 +16,8 @@ pub enum VVSpeechError {
     GetAudioQueryFailed,
     #[error("Could not get audio")]
     GetAudioFailed,
+    #[error("Could not get accent phrases")]
+    GetAccentPhrasesFailed,
 }
 
 pub type Result<T> = ::std::result::Result<T, VVSpeechError>;

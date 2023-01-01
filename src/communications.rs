@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::audio_query::AudioQueryModel;
+use crate::audio_query::{AccentPhraseModel, AudioQueryModel};
 use crate::metas::Meta;
 
 pub(crate) async fn get_speakers(base_url: &str) -> surf::Result<Vec<Meta>> {
@@ -24,6 +24,29 @@ pub(crate) async fn get_default_audio_query(
         .query(&AudioQueryQuery {
             speaker,
             text: text.to_string(),
+        })?
+        .recv_json()
+        .await
+}
+
+#[derive(Serialize)]
+struct AccentPhrasesQuery {
+    speaker: u32,
+    text: String,
+    is_kana: bool,
+}
+
+pub(crate) async fn get_accent_phrases(
+    speaker: u32,
+    text: &str,
+    is_kana: bool,
+    base_url: &str,
+) -> surf::Result<Vec<AccentPhraseModel>> {
+    surf::post(base_url.to_string() + "/accent_phrases")
+        .query(&AccentPhrasesQuery {
+            speaker,
+            text: text.to_string(),
+            is_kana,
         })?
         .recv_json()
         .await

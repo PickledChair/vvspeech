@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct MoraModel {
+pub(crate) struct MoraModel {
     text: String,
     consonant: Option<String>,
     consonant_length: Option<f32>,
@@ -11,7 +11,7 @@ pub struct MoraModel {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AccentPhraseModel {
+pub(crate) struct AccentPhraseModel {
     moras: Vec<MoraModel>,
     accent: usize,
     pause_mora: Option<MoraModel>,
@@ -19,23 +19,23 @@ pub struct AccentPhraseModel {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AudioQueryModel {
-    accent_phrases: Vec<AccentPhraseModel>,
+pub(crate) struct AudioQueryModel {
+    pub accent_phrases: Vec<AccentPhraseModel>,
     #[serde(rename = "speedScale")]
-    speed_scale: f32,
+    pub speed_scale: f32,
     #[serde(rename = "pitchScale")]
-    pitch_scale: f32,
+    pub pitch_scale: f32,
     #[serde(rename = "intonationScale")]
-    intonation_scale: f32,
+    pub intonation_scale: f32,
     #[serde(rename = "volumeScale")]
-    volume_scale: f32,
+    pub volume_scale: f32,
     #[serde(rename = "prePhonemeLength")]
-    pre_phoneme_length: f32,
+    pub pre_phoneme_length: f32,
     #[serde(rename = "postPhonemeLength")]
-    post_phoneme_length: f32,
+    pub post_phoneme_length: f32,
     #[serde(rename = "outputSamplingRate")]
-    output_sampling_rate: u32,
+    pub output_sampling_rate: u32,
     #[serde(rename = "outputStereo")]
-    output_stereo: bool,
+    pub output_stereo: bool,
     pub kana: String,
 }
