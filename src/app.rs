@@ -52,6 +52,24 @@ enum Commands {
         /// AquesTalk-like notation flag
         #[arg(short, long)]
         kana: bool,
+        /// speed of speech
+        #[arg(long, default_value_t = 1.0)]
+        speed: f32,
+        /// pitch of speech
+        #[arg(long, default_value_t = 0.0)]
+        pitch: f32,
+        /// intonation of speech
+        #[arg(long, default_value_t = 1.0)]
+        intonation: f32,
+        /// volume of speech
+        #[arg(long, default_value_t = 1.0)]
+        volume: f32,
+        /// pre phoneme length
+        #[arg(long, default_value_t = 0.1)]
+        pre_phoneme: f32,
+        /// post phoneme length
+        #[arg(long, default_value_t = 0.1)]
+        post_phoneme: f32,
     },
     /// Generate an audio file from the given text and save it
     Save {
@@ -69,14 +87,39 @@ enum Commands {
         /// AquesTalk-like notation flag
         #[arg(short, long)]
         kana: bool,
+        /// speed of speech
+        #[arg(long, default_value_t = 1.0)]
+        speed: f32,
+        /// pitch of speech
+        #[arg(long, default_value_t = 0.0)]
+        pitch: f32,
+        /// intonation of speech
+        #[arg(long, default_value_t = 1.0)]
+        intonation: f32,
+        /// volume of speech
+        #[arg(long, default_value_t = 1.0)]
+        volume: f32,
+        /// pre phoneme length
+        #[arg(long, default_value_t = 0.1)]
+        pre_phoneme: f32,
+        /// post phoneme length
+        #[arg(long, default_value_t = 0.1)]
+        post_phoneme: f32,
     },
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn get_audio_from_engine(
     metas: &[Meta],
     speaker_id: &Option<u32>,
     speaker_name: &Option<String>,
     text: &str,
+    speed: f32,
+    pitch: f32,
+    intonation: f32,
+    volume: f32,
+    pre_phoneme: f32,
+    post_phoneme: f32,
     is_kana: bool,
     base_url: &str,
 ) -> Result<Vec<u8>> {
@@ -90,6 +133,12 @@ async fn get_audio_from_engine(
             .await
             .map_err(|_| VVSpeechError::GetAccentPhrasesFailed)?;
     }
+    audio_query.speed_scale = speed;
+    audio_query.pitch_scale = pitch;
+    audio_query.intonation_scale = intonation;
+    audio_query.volume_scale = volume;
+    audio_query.pre_phoneme_length = pre_phoneme;
+    audio_query.post_phoneme_length = post_phoneme;
 
     get_audio(speaker_id, &audio_query, base_url)
         .await
@@ -202,10 +251,28 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             id: speaker_id,
             name: speaker_name,
             kana,
+            speed,
+            pitch,
+            intonation,
+            volume,
+            pre_phoneme,
+            post_phoneme,
         } => {
-            let audio =
-                get_audio_from_engine(&speakers, speaker_id, speaker_name, text, *kana, &base_url)
-                    .await?;
+            let audio = get_audio_from_engine(
+                &speakers,
+                speaker_id,
+                speaker_name,
+                text,
+                *speed,
+                *pitch,
+                *intonation,
+                *volume,
+                *pre_phoneme,
+                *post_phoneme,
+                *kana,
+                &base_url,
+            )
+            .await?;
             play_audio(audio)?;
         }
         Commands::Save {
@@ -214,10 +281,28 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             name: speaker_name,
             output,
             kana,
+            speed,
+            pitch,
+            intonation,
+            volume,
+            pre_phoneme,
+            post_phoneme,
         } => {
-            let audio =
-                get_audio_from_engine(&speakers, speaker_id, speaker_name, text, *kana, &base_url)
-                    .await?;
+            let audio = get_audio_from_engine(
+                &speakers,
+                speaker_id,
+                speaker_name,
+                text,
+                *speed,
+                *pitch,
+                *intonation,
+                *volume,
+                *pre_phoneme,
+                *post_phoneme,
+                *kana,
+                &base_url,
+            )
+            .await?;
             let mut file = File::create(output)?;
             file.write_all(&audio)?;
         }
