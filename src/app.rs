@@ -244,7 +244,7 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             show_info(&speakers, name, *json, *pretty_json)?;
         }
         Commands::Kana { text } => {
-            println!("{}", get_kana(text, &base_url).await?);
+            println!("\"{}\"", get_kana(text, &base_url).await?);
         }
         Commands::Play {
             text,
