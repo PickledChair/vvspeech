@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 use std::fs::File;
-use std::io::{BufReader, Cursor, Write};
+use std::io::{Cursor, Write};
 
 use crate::communications::*;
 use crate::error::*;
@@ -151,10 +151,7 @@ fn play_audio(audio_data: Vec<u8>) -> Result<()> {
     let (_stream, handle) =
         rodio::OutputStream::try_default().map_err(|_| VVSpeechError::PlayAudioFailed)?;
     let sink = rodio::Sink::try_new(&handle).map_err(|_| VVSpeechError::PlayAudioFailed)?;
-    sink.append(
-        rodio::Decoder::new(BufReader::new(audio_buf))
-            .map_err(|_| VVSpeechError::PlayAudioFailed)?,
-    );
+    sink.append(rodio::Decoder::new(audio_buf).map_err(|_| VVSpeechError::PlayAudioFailed)?);
 
     sink.sleep_until_end();
     Ok(())
