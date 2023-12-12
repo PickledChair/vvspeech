@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use reqwest::blocking::Client;
 
 use std::fs::File;
 use std::io::{Cursor, Write};
@@ -109,7 +110,8 @@ enum Commands {
 }
 
 #[allow(clippy::too_many_arguments)]
-async fn get_audio_from_engine(
+fn get_audio_from_engine(
+    client: &Client,
     metas: &[Meta],
     speaker_id: &Option<u32>,
     speaker_name: &Option<String>,
@@ -124,14 +126,17 @@ async fn get_audio_from_engine(
     base_url: &str,
 ) -> Result<Vec<u8>> {
     let speaker_id = get_appropriate_id(metas, speaker_id, speaker_name)?;
-    let mut audio_query =
-        get_default_audio_query(speaker_id, if is_kana { "" } else { text }, base_url)
-            .await
-            .map_err(|_| VVSpeechError::GetAudioQueryFailed)?;
+    let mut audio_query = get_default_audio_query(
+        client,
+        speaker_id,
+        if is_kana { "" } else { text },
+        base_url,
+    )
+    .map_err(|_| VVSpeechError::GetAudioQueryFailed)?;
     if is_kana {
-        audio_query.accent_phrases = get_accent_phrases(speaker_id, text, is_kana, base_url)
-            .await
-            .map_err(|_| VVSpeechError::GetAccentPhrasesFailed)?;
+        audio_query.accent_phrases =
+            get_accent_phrases(client, speaker_id, text, is_kana, base_url)
+                .map_err(|_| VVSpeechError::GetAccentPhrasesFailed)?;
     }
     audio_query.speed_scale = speed;
     audio_query.pitch_scale = pitch;
@@ -140,9 +145,7 @@ async fn get_audio_from_engine(
     audio_query.pre_phoneme_length = pre_phoneme;
     audio_query.post_phoneme_length = post_phoneme;
 
-    get_audio(speaker_id, &audio_query, base_url)
-        .await
-        .map_err(|_| VVSpeechError::GetAudioFailed)
+    get_audio(client, speaker_id, &audio_query, base_url).map_err(|_| VVSpeechError::GetAudioFailed)
 }
 
 fn play_audio(audio_data: Vec<u8>) -> Result<()> {
@@ -205,15 +208,14 @@ fn show_info(
     Ok(())
 }
 
-async fn get_kana(text: &str, base_url: &str) -> Result<String> {
-    let audio_query = get_default_audio_query(0, text, base_url)
-        .await
+fn get_kana(client: &Client, text: &str, base_url: &str) -> Result<String> {
+    let audio_query = get_default_audio_query(client, 0, text, base_url)
         .map_err(|_| VVSpeechError::GetAudioQueryFailed)?;
 
     Ok(audio_query.kana)
 }
 
-pub(crate) async fn app_run() -> anyhow::Result<()> {
+pub(crate) fn app_run() -> anyhow::Result<()> {
     let args = Args::parse();
     let base_url = if let Some(base_url) = args.engine_url {
         match base_url.to_lowercase().as_str() {
@@ -228,8 +230,9 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
         DEFAULT_BASE_URL.to_string()
     };
 
-    let speakers = get_speakers(&base_url)
-        .await
+    let client = Client::new();
+
+    let speakers = get_speakers(&client, &base_url)
         .map_err(|_| VVSpeechError::DetectEngineFailed(base_url.clone()))?;
 
     match &args.command {
@@ -241,7 +244,7 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             show_info(&speakers, name, *json, *pretty_json)?;
         }
         Commands::Kana { text } => {
-            println!("\"{}\"", get_kana(text, &base_url).await?);
+            println!("\"{}\"", get_kana(&client, text, &base_url)?);
         }
         Commands::Play {
             text,
@@ -256,6 +259,7 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             post_phoneme,
         } => {
             let audio = get_audio_from_engine(
+                &client,
                 &speakers,
                 speaker_id,
                 speaker_name,
@@ -268,8 +272,7 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
                 *post_phoneme,
                 *kana,
                 &base_url,
-            )
-            .await?;
+            )?;
             play_audio(audio)?;
         }
         Commands::Save {
@@ -286,6 +289,7 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
             post_phoneme,
         } => {
             let audio = get_audio_from_engine(
+                &client,
                 &speakers,
                 speaker_id,
                 speaker_name,
@@ -298,8 +302,7 @@ pub(crate) async fn app_run() -> anyhow::Result<()> {
                 *post_phoneme,
                 *kana,
                 &base_url,
-            )
-            .await?;
+            )?;
             let mut file = File::create(output)?;
             file.write_all(&audio)?;
         }
